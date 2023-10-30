@@ -1,0 +1,107 @@
+//Author: Aswaty A B
+//Date of creation: 30.10.2023
+//Project Name: Customer Banking 
+using Microsoft.AspNetCore.Mvc;
+using ApiCust.Data;
+using ApiCust.Models;
+using System.Linq;
+using System.Collections.Generic;
+using System;
+namespace ApiCust.Controllers
+{
+    [Route("[controller]/[action]/{accno?}")]
+    [ApiController]
+    public class CustomerController : ControllerBase
+    {
+        ApplicationDbContext context;
+        public CustomerController(ApplicationDbContext _context)
+        {
+            context = _context;
+        }
+//HttpGet method to fetch all the accounts from database
+        [HttpGet]
+        public List<Accounts> GetAccount()
+        {
+            return context.Accounts.ToList();
+        }
+//HttpGet method to fetch all the Customer from database
+        [HttpGet]
+        public List<Customer> GetCustomer()
+        {
+            return context.Customers.ToList();
+        }
+//HttpGet method to fetch particular customer from database using 'accno' a unique identity
+        [HttpGet]
+        public Customer GetCustomers(int accno)
+        {
+            return context.Customers.Find(accno);
+        }
+//HttpPost method to save customer details customerid, accountnumber, name, address,account, status of account, adding into database
+        [HttpPost]
+        public void PostCustomer(Customer cust)
+        {
+
+           
+            int? id = 0;
+            try
+            {
+                id = context.Customers.Max(b => b.Accno);
+            }
+            catch
+            {
+                id = 0;
+            }
+            var customersDb = new Customer();
+            customersDb.Accno = id + 1;
+            customersDb.Name = cust.Name;
+            customersDb.Address = cust.Address;
+            customersDb.Account = cust.Account;
+            customersDb.Status = cust.Status;
+            context.Customers.Add(customersDb);
+            context.SaveChanges();
+
+
+        }
+//HttpPut method is an edit method which save the changes in database, find the particular account, and save the change of account details to database
+        [HttpPut]
+        public void PutCustomer(Customer cust)
+        {
+            Customer updateCust = context.Customers.Find(cust.Accno);
+            updateCust.Name = cust.Name;
+            updateCust.Address = cust.Address;
+            updateCust.Account = cust.Account;
+            updateCust.Status = cust.Status;
+            context.SaveChanges();
+        }
+//This is HttpDelete method to delete any particular customer account
+        [HttpDelete]
+        public string DeleteCustomer(int accno)
+        {
+            try
+            {
+                Customer deleteCust = context.Customers.Find(accno);
+                if (deleteCust != null)
+                {
+                    context.Customers.Remove(deleteCust);
+                    context.SaveChanges();
+                    return "Customer details deleted As requested";
+                }
+                else
+                {
+                    return "InCorrect Account Number";
+                }
+
+            }
+            catch
+            {
+                return "This Customer con not be Deleteed";
+
+            }
+        }
+
+
+
+    }
+}
+
+
